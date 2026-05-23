@@ -4,7 +4,7 @@ Vulnerability: SQL injection in the product category filter
 
 Original SQL Query:
   - SELECT * FROM products WHERE category = 'Gifts' AND released = 1
-Here the 'released = 1' hides unreleased products from user.
+Here the "released = 1" hides unreleased products from user.
 
 Objective: Bypass the filter to retrieve unreleased products.
 
