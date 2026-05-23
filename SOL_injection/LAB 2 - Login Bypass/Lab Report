@@ -1,1 +1,32 @@
+Lab: SQL injection vulnerability allowing login bypass.
+
+Vulnerability: SQL injection vulnerability in the login function.
+
+Original SQL query:
+  -SELECT * FROM users WHERE username='administrator' AND password='*******'
+
+Motive: Log in to the application as the administrator user.
+
+Exploitation Steps:
+1. Go to My Account page for logging in.
+2. In the username field, enter " administrator'-- " and enter any random text in password field.
+3. The modified query will be:
+    - SELECT * FROM users WHERE username='administrator'--' AND password='@#%$^&'
+4. Now click the Log in button
+
+How it works:
+- Using -- after administrator comments out rest of the query, so the password condition is ignored.
+- Because of this, the application only checks for the username administrator.
+- Any random password can be used to complete the login request.
+
+Result: We successfully logged in to the application as administrator.
+
+Risk involved: An attacker may log in as an administrator and exploit admin privileges
+
+Remediation:
+- Use parameterized queries or prepared statements.
+- Avoid directly inserting user input into SQL queries.
+- Implement proper input validation and sanitization.
+
+
 
