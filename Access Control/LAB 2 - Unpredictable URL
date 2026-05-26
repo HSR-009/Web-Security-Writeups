@@ -12,15 +12,15 @@ Exploitation Steps:
     if (isAdmin) {
        var topLinksTag = document.getElementsByClassName("top-links")[0];
        var adminPanelTag = document.createElement('a');
-       adminPanelTag.setAttribute('href', '/admin-fra43i');
+       adminPanelTag.setAttribute('href', '/admin-h1xbuc');
        adminPanelTag.innerText = 'Admin panel';
        topLinksTag.append(adminPanelTag);
        var pTag = document.createElement('p');
        pTag.innerText = '|';
        topLinksTag.appendChild(pTag);
     }
-4. The line "adminPanelTag.setAttribute('href', '/admin-fra43i')" revealed the hidden admin panel path.
-5. Go back to lab page and append /admin-fra43i to the URL to access the admin panel without any authentication.
+4. The line "adminPanelTag.setAttribute('href', '/admin-h1xbuc')" revealed the hidden admin panel path.
+5. Go back to lab page and append /admin-h1xbuc to the URL to access the admin panel without any authentication.
 6. Now, delete the user carlos.
 
 How it works: 
