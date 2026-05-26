@@ -1,1 +1,37 @@
+Lab: Unprotected admin functionality with unpredictable URL
 
+Vulnerability: Admin panel location is disclosed somewhere in the application 
+
+Objective: To access admin panel and delete the user carlos
+
+Exploitation Steps:
+1. Open the lab and press Ctrl+U to view page source
+2. Inspect the source code to look for hidden endpoints or admin-related functionality.
+3. Inside the source code, we found -
+    var isAdmin = false;
+    if (isAdmin) {
+       var topLinksTag = document.getElementsByClassName("top-links")[0];
+       var adminPanelTag = document.createElement('a');
+       adminPanelTag.setAttribute('href', '/admin-h1xbuc');
+       adminPanelTag.innerText = 'Admin panel';
+       topLinksTag.append(adminPanelTag);
+       var pTag = document.createElement('p');
+       pTag.innerText = '|';
+       topLinksTag.appendChild(pTag);
+    }
+4. The line "adminPanelTag.setAttribute('href', '/admin-h1xbuc')" revealed the hidden admin panel path.
+5. Go back to lab page and append /admin-h1xbuc to the URL to access the admin panel without any authentication.
+6. Now, delete the user carlos.
+
+How it works: 
+-Developers sometimes leave hidden paths or functionality inside the page source or JavaScript files.
+-Since anyone can view the page source, attackers can inspect it to find hidden endpoints.
+-In this lab, the admin panel path was hidden in the JavaScript code but was still easy to discover.
+-After finding the path, we manually added it to the URL and accessed the admin panel without authentication.
+
+Result: We successfully discovered the hidden admin panel path and used it to delete user carlos.
+
+Remediation:
+-Do not expose sensitive endpoints inside client-side source code.
+-Implement proper authentication and access control for admin functionality.
+-Avoid relying on hidden URLs as a security measure.
