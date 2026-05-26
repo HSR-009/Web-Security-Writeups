@@ -1,0 +1,30 @@
+Lab: Unprotected admin functionality
+
+Vulnerability: Unprotected admin panel.
+
+Objective: To access admin panel and delete the user carlos.
+
+Exploitation Steps:
+1. Open the lab, go to the URL and manually add /robots.txt at the end of the URL.
+2. This will open robots.txt file which contains -
+     User-agent: *
+     Disallow: /adiministrator-panel
+3. The Disallow entry revealed the hidden admin panel path.
+4. Now go back to URL and replace /robots.txt with /administrator-panel.
+5. The admin panel opened without any authentication.
+6. Delete the user carlos.
+
+How it works:
+- robots.txt file is used by websites to tell search engines which paths should not be indexed. We can access it by using /robots.txt at the end of URL.
+- Developers sometimes store sensitive paths inside this file, assuming users will not check it.
+- In this case the path to access admin panel was stored in it whcih was /administrator-panel.
+- By appending it to the URL one can easily access admin panel as there is no authentication.
+
+Result: The admin panel was accessed without any authentication and we were able to delete the user carlos.
+
+Risk Involved: An attacker may discover hidden administrative paths or endpoints and gain unauthorized access to sensitive features.
+
+Remediation:
+-Do not expose sensitive paths inside robots.txt.
+-Implement proper authentication and access control for admin panels.
+-Restrict unauthorized users from accessing administrative functionality.
