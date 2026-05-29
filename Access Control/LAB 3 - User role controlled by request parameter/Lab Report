@@ -1,10 +1,30 @@
-Lab: User role controlled by request parameter
+Lab: User role controlled by request parameter.
 
-Vulnerability: Admin Panel which identifies administrators using a forgeable cookie
+Vulnerability: Admin panel access controlled by a forgeable cookie.
 
-Objective: Access admin panel and using it delete the user carlos
+Objective: Access admin panel and using it delete the user carlos.
 
 Exploitation Steps:
-1. Connect Burp Suite with the lab on browser
-2. Add the payload /admin into the url, these will show an error message.
-3. In Burp Proxy, look for this request in http history and send it to the Repeater
+1. Connect Burp Suite with browser and in Proxy, turn on Intercept.
+2. In the lab, add /admin to the url to access the admin panel and send the request.
+3. In Burp Proxy, intercept this request and observe that Admin parameter is set to false.
+4. Change this value to true and forward this request. This will open the admin panel successfully.
+5. Delete the user carlos from the panel inside lab.
+6. Again go to Burp Proxy, intercept the delete request and change the Admin parameter to true.
+7. Forward all the remaining requests. This will delete the user and solve the lab.
+
+How it works:
+- The application uses the Admin parameter to determine whether a user is an administrator.
+- By intercepting the request in Burp Suite, we were able to view and modify the request before it reached the server.
+- The Admin value was set to false. Changing it to true tricked the application into treating us as an administrator.
+- Since the application trusted a cookie value for access control, it allowed unauthorized access to the admin panel.
+
+Result: We were able to access the admin panel and delete the user carlos.
+
+Risk Involved: An attacker may modify the request and gain unauthorized access to administrative functionality.
+
+Remediation:
+- Do not use user-controlled parameters or cookies to determine user roles.
+- Validate user permissions on the server side before granting access to administrative functionality.
+- Implement proper access control checks for all sensitive endpoints.
+- Use secure session management to store and verify user roles.
