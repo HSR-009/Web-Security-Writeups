@@ -1,0 +1,10 @@
+Lab: User role controlled by request parameter
+
+Vulnerability: Admin Panel which identifies administrators using a forgeable cookie
+
+Objective: Access admin panel and using it delete the user carlos
+
+Exploitation Steps:
+1. Connect Burp Suite with the lab on browser
+2. Add the payload /admin into the url, these will show an error message.
+3. In Burp Proxy, look for this request in http history and send it to the Repeater
