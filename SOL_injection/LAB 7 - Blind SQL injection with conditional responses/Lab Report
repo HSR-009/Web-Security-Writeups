@@ -1,0 +1,62 @@
+Lab: Blind SQL injection with conditional responses
+
+Vulnerability: Blind SQL injection vulnerability
+
+Given: 
+-The application includes a 'Welcome back' message in the page if the query returns any rows.
+-The database contains a table called 'users', with columns called 'username' and 'password'.
+-Password contains only lowercase alphanumeric characters.
+Objective: To find out the password of the administrator user and log in as administrator
+
+Exploitation Steps:
+1. Connect Burp Suite with the browser and access the lab
+2. Locate this request in Proxy's HTTP History and send it to Repeater.
+3. In Repeater, modify the TrackingId cookie by adding following payload to verify the message condition -
+    - TrackingId=xyz' AND '1'='1
+    - TrackingId=xyz' AND '1'='2
+  The first condition returns the "Welcome Back" message, while the second one does not, confirming that the response changes based on the query result.
+4. Verify the existence of the users table using payload:
+    -' AND (SELECT 'a' FROM users LIMIT 1)='a
+   The "Welcome Back" message appears, confirming the table exists.
+5. Now for verifying existance of user 'administrator, we use: 
+    - ' AND (SELECT 'a' FROM users WHERE username='administrator')='a
+   This condition is also true, confirming its existence.
+6. Now for determining the length of password, we use:
+    - ' AND (SELECT 'a' FROM users WHERE username='administrator' AND LENGTH(password)=1)='a
+   We will continue increasing the length till we get 'Welcome Back' message confirming the length of password.
+7. Eventually we figure out that the password's length is 20 characters.
+8. Now send the request to Burps's Intruder to brute force the password.
+9. Inside intruder, change the cookie value to -
+    - TrackingId=xyz' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE username='administrator')='a
+10. After adding the payload markers the query will look like: 
+    - TrackingId=xyz' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE username='administrator')='§a§
+11. In the  Payloads side panel select Simple List and add alphanumeric payloads under Payload configuration.
+12. After that go to settings and in the Grep - Match section, clear existing entries in the list, then add the value 'Welcome back'. 
+    This adds a Welcome Back column in the results to check weather it was present in the response or not.
+13. Now launch the attack and review the results. We find that one row has a tick in the Welcome Back column. This reveals the correct character for that position.
+14. Now for figuring out other position we simply modify the query as -
+     - TrackingId=xyz' AND (SELECT SUBSTRING(password,2,1) FROM users WHERE username='administrator')='§a§
+     - TrackingId=xyz' AND (SELECT SUBSTRING(password,3,1) FROM users WHERE username='administrator')='§a§
+    and so on till 20th position.
+15. Finally we combine these values to derive the password and using it to log in as administrator.
+
+How it works:
+- The application shows a "Welcome Back" message whenever the SQL query returns a valid result.
+- We first tested this using the conditions '1'='1' and '1'='2'. The message appeared when the condition was true and disappeared when it was false.
+- - We then used different queries to check whether the users table and the administrator account existed in the database using this message condition.
+- After that, we determined the password length by testing different values with LENGTH().
+- We then used SUBSTRING() to check one character of the password at a time.
+- Burp Intruder helped automate this process by testing multiple characters at a single position and showing which one returned the "Welcome Back" message.
+- We repeated the process for each position and eventually reconstructed the entire administrator password.
+
+Result: We successfully determined the administrator password and used it to log in as the administrator account.
+
+Risk involved: An attacker may extract sensitive information from the database even when query results are not directly displayed by the application.
+
+Remediation:
+- Use parameterized queries or prepared statements.
+- Avoid directly inserting user input into SQL queries.
+- Validate and sanitize user input.
+- Implement least-privilege access for database accounts.
+- Monitor and restrict abnormal request patterns that may indicate automated attacks.
+
