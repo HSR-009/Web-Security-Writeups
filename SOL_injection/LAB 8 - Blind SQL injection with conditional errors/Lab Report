@@ -1,1 +1,15 @@
+Lab: Blind SQL injection with conditional errors
 
+Vulnerability: Blind SQL injection vulnerability
+
+Objective: To exploit the blind SQL injection vulnerability to find out the password of the administrator user.
+
+Given:
+-The database contains a different table called users, with columns called username and password.
+-The application does not respond any differently based on whether the query returns any rows.
+-If the SQL query causes an error, then the application returns a custom error message.
+
+Exploitation Steps:
+1. Connect Burp Suite with browser and go to My Account page.
+2. Send this request to Burps's Repeater for manipulating it.
+3. Manipulate the TrackingID to check wheather error coe
