@@ -1,6 +1,6 @@
 Lab: Blind SQL injection with conditional errors
 
-Vulnerability: Blind SQL injection vulnerability
+Vulnerability: Blind SQL injection vulnerability in tracking cookie.
 
 Objective: To exploit the blind SQL injection vulnerability to find out the password of the administrator user.
 
@@ -17,11 +17,11 @@ Analysis & Exploitation:
   a. First we verify the error message conditon:
     - TrackingId=xyz'  ( error message )
     - TrackingId=xyz'' ( no error meesage )
-    Hence, error message occurs in all invalid queries but we might execute vulnerable quereies between quotes.
-  b. Test the vulnerable perimeter:
+    Hence, error message occurs in all invalid queries but we might execute vulnerable queries between quotes.
+  b. Test the vulnerable parameter:
     - TrackingId=xyz'||(SELECT '')||'  (error message, might have a different database)
     - TrackingId=xyz'||(SELECT '' FROM dual)||' ( no error, confirms oracle database )
-  c. Now we will be check table and username:
+  c. Now we check for the users table and administrator username.:
     - '||(SELECT '' FROM users WHERE ROWNUM = 1)||'                  ( no error, confirming users table )
     - '||(SELECT '' FROM users WHERE username='administrator')||'    ( no error, confirming administrator username )
   d. Now we use a test condition to check cases:
@@ -29,7 +29,7 @@ Analysis & Exploitation:
       Here since the condition 1=1 is true we move to 1/0 which causes internal server error.
     - '||(SELECT CASE WHEN (1=2) THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator)||'
       Here the condition is false so 1/0 does not run so no error occurs. 
-4. So after analyzing this thing we will use the above test case to determin the length of password using following query:
+4. So after analyzing this thing we will use the above test case to determine the length of password using following query:
     -'||(SELECT CASE WHEN LENGTH(password)=x THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator)||'
       Where we put differnt values of x like 1,2,3,........... to find the length of password.
       ON x=20 we get an internal server error that means the test condition was true. That means password lenght is 20.
@@ -39,6 +39,29 @@ Analysis & Exploitation:
 7. In the payload 1, choose number in range 1 to 20.
 8. In the payload a, choose lowercase alphnumericals.
 9. Now go to the settings and in grep extract, add text "Internal Server Error" and start the attack.
-10. In the results we can see 20 results containing 2 in Internal Server Error column which shows correct value for that position.
+10. The rows that contain a value in the Internal Server Error column indicate that the condition evaluated to true.
 11. We figure out the password from the attack resutls and use it to log in as an administrator.
 
+How it works:
+- Unlike the previous blind SQL injection lab, the application does not display any visible difference when a query returns data.
+- Instead, we use SQL queries that intentionally trigger a database error when a condition is true.
+- Oracle databases require the DUAL table for simple SELECT statements, which is why SELECT '' FROM dual was used to confirm the database type.
+- The CASE WHEN statement allows us to execute different SQL expressions depending on whether a condition is true or false.
+- TO_CHAR(1/0) was used because dividing by zero causes an error in the database.
+- When the condition inside CASE WHEN was true, the query executed 1/0 and the application returned an Internal Server Error.
+- When the condition was false, the division by zero never executed and the application responded normally.
+- We first used LENGTH(password) to determine the password length.
+- After finding the length, SUBSTR(password,position,1) was used to retrieve one character of the password at a time.
+- Burp Intruder automated the process by testing multiple positions and characters and identifying which requests triggered an Internal Server Error.
+
+Result: We successfully determined the administrator password using conditional error-based blind SQL injection and logged in as the administrator account.
+
+Risk involved: An attacker may extract sensitive information from the database even when the application does not display query results directly.
+
+Remediation:
+- Use parameterized queries or prepared statements.
+- Avoid directly inserting user input into SQL queries.
+- Properly validate and sanitize user input.
+- Do not expose detailed database or server error messages to users.
+- Apply the principle of least privilege to database accounts.
+- Monitor and restrict automated attack patterns such as excessive requests.
