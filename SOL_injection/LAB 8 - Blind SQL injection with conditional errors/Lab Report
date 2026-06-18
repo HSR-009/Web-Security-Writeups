@@ -46,15 +46,15 @@ How it works:
 - Unlike the previous blind SQL injection lab, the application does not display any visible difference when a query returns data.
 - Instead, we use SQL queries that intentionally trigger a database error when a condition is true.
 - Oracle databases require the DUAL table for simple SELECT statements, which is why SELECT '' FROM dual was used to confirm the database type.
+- The WHERE ROWNUM = 1 condition is used to prevent the query from returning more than one row, which would break our concatenation.
 - The CASE WHEN statement allows us to execute different SQL expressions depending on whether a condition is true or false.
 - TO_CHAR(1/0) was used because dividing by zero causes an error in the database.
 - When the condition inside CASE WHEN was true, the query executed 1/0 and the application returned an Internal Server Error.
 - When the condition was false, the division by zero never executed and the application responded normally.
-- We first used LENGTH(password) to determine the password length.
 - After finding the length, SUBSTR(password,position,1) was used to retrieve one character of the password at a time.
 - Burp Intruder automated the process by testing multiple positions and characters and identifying which requests triggered an Internal Server Error.
 
-Result: We successfully determined the administrator password using conditional error-based blind SQL injection and logged in as the administrator account.
+Result: We successfully determined the administrator password using conditional error-based blind SQL injection and logged in as the administrator.
 
 Risk involved: An attacker may extract sensitive information from the database even when the application does not display query results directly.
 
